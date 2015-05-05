@@ -1,0 +1,97 @@
+\documentclass[11pt]{report}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+ 
+\begin{document}
+
+\title{Résolution de conflits En-Route : une étude de la robustesse}
+\author{C. Baillif \and G. Duchoquet \and R. Enselme \and M. Gauthey}
+\date{\today}
+\maketitle
+
+\chapter*{Remerciements}
+
+\addcontentsline{toc}{chapter}{Introduction}
+
+\tableofcontents
+
+\chapter*{Introduction}
+ 
+
+\chapter{Une nouvelle approche de la résolution de conflits}
+\section{Les diverses approches de la résolution de conflit en route}
+Bref historique de ce qui s'est déjà fait, ou qui se fait. Parler d'ERCOS en particulier, ainsi que de SAGES et ERASMUS. Expliquer en quoi certaines de ces approches sont déconnectées de la réalité en terme ATC (instructions irréalistes aux pilotes). Montrer l'originalité du MAIAA qui est un laboratoire inséré dans une structure qui forme les contrôleurs aériens. Noter que pour l'instant on est encore loin de pouvoir se passer des contrôleurs et les remplacer par des ordinateurs.
+\section{L'approche du MAIAA}
+\subsection{Nouveau cadre pour la résolution de conflit En-Route}
+Résumer et traduire l'article correspondant. Expliquer surtout le fait de séparer le modèle de trajectoire de la méthode de résolution. Mettre des beaux schémas et une ou deux formules (calcul du coût, du nombre de trajectoires etc ...).
+\subsection{Algorithmes utilisés}
+Décrire succinctement les deux algorithmes utilisés dans l'article, à savoir le CSP (constraints programming) et l'algorithme évolutionniste (génétique).
+\section{Peut on faire confiance à ces solutions ?}
+On a des solutions, c'est bien. Mais à quelle condition un contrôleur utilisera un tel outil d'aide à la résolution ? On peut montrer un diagramme avec un cas de résolution très complexe, éloignée de ce qu'un contrôleur opérationnel aurait pu imaginer, et poser la question : que se passe t-il si un grain de sable vient se glisser dans cette belle mécanique ? Est-ce qu'on court droit au carnage ? --> Notion de robustesse.
+
+\chapter{Robustesse dans le cadre de la résolution de conflit En-Route}
+\section{Notion de robustesse}
+Ici définir de manière générale ce concept. Reprendre la section de la thèse que Cyril nous a fait passer. Détailler les différentes variantes : reliability, error-tolerance etc ... 
+\section{(a,b) Super-solutions}
+Introduire le concept de (a,b) Super-solution. Focus sur les (1,0) Super-solutions. Pourquoi ce serait utile ? Illustrer avec notre cas, et avec un exemple de solution et de matrice.
+\section{Scénarios de test}
+Lister l'ensemble des perturbation qui sont susceptibles de remettre en cause une solution : perte de contact radio, erreur collationnement (le pilote ouvre à droite au lieu d'ouvrir à gauche), activation inopinée d'une zone militaire, apparition d'une zone météorologique inopportune. Se concentrer sur les scénarios qu'on a décidé de tester, c'est à dire perte de contact radio, et erreur collationnement. Introduire du coup l'idée de (Â,1) Super-solution, qui correspond au cas de la perte radio. Pour apporter un esprit critique, on peut mentionner ici une faiblesse du modèle : si un avion par exemple perd un moteur et est incapable de maintenir sa vitesse, la matrice 4-D devient obsolète, et on ne peut rien faire ?
+
+\chapter{Tests de robustesse}
+\section{Méthode utilisée}
+\subsection{Structure des données}
+Expliquer brièvement comment se présentent les données, ainsi que les fichiers solutions qu'on manipule.
+\subsection{Recuit simulé (Simulated Annealing)}
+\subsubsection*{Le principe}
+Comme on l'a vu précédemment, les méta-heuristiques sont les algorithmes les plus adaptés à la résolution de problèmes combinatoires tels que la résolution de conflits entre avions. Pour réparer les solutions perturbées, nous avons choisi d'utiliser l'un d'entre eux : le recuit simulé, dont on va présenter brièvement le principe dans cette section.\\
+
+Le recuit simulé est un algorithme introduit dans les années 1980 par trois chercheurs d'IBM : S. Kirkpatrick, C.D. Gelatt et M.P. Vecchi. Il s'inspire d'un processus utilisé en métallurgie qui consiste à refroidir un métal en alternant des phases de refroidissement lent et de réchauffage (recuit) pour atteindre un extremum d'énergie. \\ 
+
+Commençons par exposer une méthode de recherche de minimum local. Imaginons que l'on veuille trouver le minimum de la fonction représentée sur la figure x.x. On décide de commencer notre recherche à partir d'un certain point de la courbe, par exemple celui représenté par le cercle numéroté 0. Une méthode consisterait à ensuite étudier une configuration voisine, par exemple celle représentée par le cercle numéroté 1. On constate que la valeur de la fonction pour la configuration 1 est supérieure à celle pour la configuration 2. On ne retient donc pas cette configuration, et on revient à la précédente. On teste ensuite la configuration 2. Cette fois la valeur de la fonction est inférieure, nous sommes sur la bonne voie. On continue donc dans cette direction, et on constate que la valeur de la fonction est de nouveau plus faible pour la configuration 3. On poursuit et on constate cette fois que la configuration 4 fait augmenter la valeur de notre fonction, on revient donc à la valeur précédente, qui constitue bien un minimum. Cependant on constate en analysant la courbe, que ce minimum constitue un minimum local, et non global. Comment atteindre ce dernier ?\\
+
+Pour cela il faut faire en sorte que notre algorithme ne soit pas « piégé » dans un minimum local, et puisse explorer l'ensemble de l'espace des solutions. Pour cela l'algorithme de recuit simulé autorise à garder une configuration, même si elle n'améliore pas le paramètre que l'on cherche à optimiser. Et ce avec une probabilité calculée à partir d'un paramètre appelé température, en référence au modèle thermodynamique du recuit en métallurgie. Voici comment fonctionne l'algorithme : à chaque itération, on considère une configuration voisine de la précédente. Si cette configuration diminue la valeur de la fonction, on la garde. Si elle l'augment au contraire, on ne la rejette pas forcément. On l'accepte avec une probabilité donnée par :\\
+
+\begin{equation}
+P_a = \exp -(\frac{\Delta f}{T}) 
+\end{equation}
+
+
+
+Où $T$ est la température, et $\Delta f = f_{i+1} - f_{i}$. Regardons ce que cela donne avec un schéma semblable au précédent : \\
+
+On constate que l'algorithme peut explorer les parties de la fonction qui lui étaient auparavant interdites. Bien sûr si on laisse tourner l'algorithme de cette façon, et qu'on a réglé la température de sorte  que la probabilité d'accepter une configuration non optimale soit élevée, un autre problème surgit. L'algorithme parcourt certes toute la courbe de la fonction, mais ne s'arrête jamais nulle part. A l'inverse si l'on a réglé la température trop basse, la probabilité d'accepter une configuration non optimale est proche de zéro, l'algorithme ne fait rien de plus qu'une recherche locale. Il faut donc régler la température judicieusement, de manière à explorer toute la courbe au début, et une fois arrivé dans la zone où se trouve le minimum global, y rester pour faire une recherche locale. \\
+
+Cela peut se faire si la température est une fonction décroissante du temps. On peut utiliser par exemple une loi du type : $ T_{i+1} = 0,99{Ti}$\\
+
+Voici un diagramme qui résume le recuit simulé : \\
+
+\subsubsection*{Détails}
+
+Qu'est ce qu'un voisinage, qu'est ce qu'on a choisi ...
+
+\subsection{Mise en oeuvre}
+Expliquer quels paramètres on a fait varier, ce qu'on a recherché exactement, quels statistiques on a cherché à établir. Bref une fois l'algorithme de réparation de solution mis au point, comment a t-on mis celui ci en oeuvre. Mentionner éventuellement que le programme a été écrit en Java.
+\section{Résultats obtenus}
+\subsection{Recherche de (1,0) Super-solutions}
+Exposition des résultats. Graphes, statistiques, bref tout ce qui est disponible.
+\subsection{Recherche de (Â,1) Super-solutions}
+Idem que le précédent.
+\section{Analyse des résultats}
+Analyse critique des résultats obtenus. Penser à choisir un critère qui nous permette de conclure : les solutions fournies sont elles robustes ou non selon ce critère ?
+Ouverture sur d'autres travaux ultérieurs possibles : peut-être faudrait il dès le départ choisir les solutions non pas uniquement en cherchant à minimiser le coût, mais aussi en cherchant des solutions robustes.
+Autres idées ...
+
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion} 
+
+\chapter*{Annexes}
+\addcontentsline{toc}{chapter}{Annexes} 
+\chapter*{Bibliographie}
+
+\addcontentsline{toc}{chapter}{Bibliographie} 
+
+\end{document}
+
